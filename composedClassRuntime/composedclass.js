@@ -1,42 +1,50 @@
-
-function init1() {
-    console.log('init1 executed');
+function forcedInit() {
+    console.log('forced init is executed');
 }
 
-function init2() {
-    console.log('init2 executed');
+function normalInit() {
+    console.log('normal init is executed');
 }
 
-function process1() {
-    console.log('process1 executed');
+function forcedProcess() {
+    console.log('forced process is executed');
 }
 
-function process2() {
-    console.log('process2 executed');
+function normalProcess() {
+    console.log('normal process is executed');
 }
 
-function ingest1() {
-    console.log('ingest1 executed');
+function forcedIngest() {
+    console.log('forced ingestion is executed');
 }
 
-function ingest2() {
-    console.log('ingest2 executed');
+function normalIngest() {
+    console.log('normal ingestion is executed');
 }
 
-function close1() {
-    console.log('close1 executed');
+function forcedClose() {
+    console.log('forced close is executed');
 }
 
-function close2() {
-    console.log('close2 executed');
+function normalClose() {
+    console.log('normal close is executed');
 }
 
-function run(processor) {
-    processor.init();
-    processor.process();
-    processor.ingest();
-    processor.close();
-}
+const mapOfInits = new Map();
+mapOfInits.set('forced', forcedInit);
+mapOfInits.set('normal', normalInit);
+
+const mapOfProcesses = new Map();
+mapOfProcesses.set('forced', forcedProcess);
+mapOfProcesses.set('normal', normalProcess);
+
+const mapOfIngest = new Map();
+mapOfIngest.set('forced', forcedProcess);
+mapOfIngest.set('normal', normalIngest);
+
+const mapOfClose = new Map();
+mapOfClose.set('forced', forcedProcess);
+mapOfClose.set('normal', normalClose);
 
 class Processor {
     constructor(mode, type, profile) {
@@ -48,23 +56,23 @@ class Processor {
 
 const compose = (mode) => {
     const processor = new Processor(mode, 'address', 'batch');
-    if (mode === 'normal') {
-        processor.__proto__.init = init1;
-        processor.__proto__.process = process1;
-        processor.__proto__.ingest = ingest1;
-        processor.__proto__.close = close1;
-    } else {
-        processor.__proto__.init = init2;
-        processor.__proto__.process = process2;
-        processor.__proto__.ingest = ingest2;
-        processor.__proto__.close = close2;
-    }
+    processor.__proto__.init = mapOfInits.get(mode);
+    processor.__proto__.process = mapOfProcesses.get(mode);
+    processor.__proto__.ingest = mapOfIngest.get(mode);
+    processor.__proto__.close = mapOfClose.get(mode);
     return processor;
 };
+
+function run(processor) {
+    processor.init();
+    processor.process();
+    processor.ingest();
+    processor.close();
+}
 
 const test = (mode) => {
     const processor = compose(mode);
     run(processor);
 };
 
-test('normal');
+test('forced');
